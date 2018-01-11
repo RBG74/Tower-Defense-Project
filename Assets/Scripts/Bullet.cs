@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class Bullet : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class Bullet : MonoBehaviour
 
     [HideInInspector]
     public Transform target;
+    [HideInInspector]
+    public Turret turret;
 
     // Update is called once per frame
     void Update()
@@ -39,7 +42,31 @@ public class Bullet : MonoBehaviour
         GameObject effectIns = Instantiate(impactEffect, transform.position, transform.rotation);
         Destroy(effectIns, 2f);
 
-        Destroy(target.gameObject);
+        var enemy = target.GetComponent<Enemy>();
+        ApplyDamage(turret, enemy);
+        if(enemy.health <= 0)
+        {
+            Destroy(target.gameObject);
+        }
+
         Destroy(gameObject);
+    }
+
+    Dictionary<string, List<string>> isEfficient = new Dictionary<string, List<string>>()
+    {
+        { "Cold", new List<string>{ "Hot" } },
+        { "Hot", new List<string>{ "Cold" } }
+    };
+
+    private void ApplyDamage( Turret turret, Enemy enemy )
+    {
+        int damage = turret.baseDamage;
+        var turretType = turret.type;
+        var enemyType = enemy.type;
+        if( isEfficient[turretType].Contains(enemyType) )
+        {
+            damage *= 2;
+        }
+        enemy.health -= damage;
     }
 }

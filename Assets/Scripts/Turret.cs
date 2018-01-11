@@ -10,14 +10,16 @@ public class Turret : MonoBehaviour {
     public Transform firePoint;
 
     [Header("Turret settings")]
+    public string type;
     public float range = 3f;
     public float turnSpeed = 10f;
     public float fireRate = 1f;
+    public int baseDamage = 1;
 
     private float fireCountdown = 0f;
     private Transform target = null;
-    
-	void Update () {
+
+    void Update () {
         if (target == null || !IsTargetInRange())
         {
             AcquireTarget();
@@ -46,6 +48,7 @@ public class Turret : MonoBehaviour {
     {
         GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         Bullet bullet = bulletGO.GetComponent<Bullet>();
+        bullet.turret = this;
 
         if (bullet != null)
             bullet.target = target;
@@ -59,12 +62,12 @@ public class Turret : MonoBehaviour {
         Collider[] objectsInRange = Physics.OverlapSphere(transform.position, range);
         int nextWaypointIndex, maxWaypoint = 0;
         float distToWaypoint, minDistToWayoint = Mathf.Infinity;
-        Enemy enemy;
+        EnemyMovement enemy;
         int enemiesInRange = 0;
 
         for (int i = 0, l=objectsInRange.Length;  i < l; i++)
         {
-            enemy = objectsInRange[i].GetComponent<Enemy>();
+            enemy = objectsInRange[i].GetComponent<EnemyMovement>();
             if (enemy)
             {
                 enemiesInRange++;
