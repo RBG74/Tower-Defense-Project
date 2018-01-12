@@ -14,7 +14,13 @@ public class Bullet : MonoBehaviour
     [HideInInspector]
     public Turret turret;
 
-    // Update is called once per frame
+    private GameManager gameManager;
+
+    private void Start()
+    {
+        gameManager = GameManager.instance;
+    }
+    
     void Update()
     {
 
@@ -68,5 +74,7 @@ public class Bullet : MonoBehaviour
             damage *= 2;
         }
         enemy.health -= damage;
+
+        gameManager.IncreaseDamageDone(turretType, (float)damage);
     }
 }

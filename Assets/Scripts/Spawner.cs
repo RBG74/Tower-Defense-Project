@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Spawner : MonoBehaviour {
@@ -7,7 +8,8 @@ public class Spawner : MonoBehaviour {
     [Header("Unity setup")]
     public Transform enemyParent;
     public Transform spawnPoint;
-    public Transform enemyPrefab;
+    public Transform hotEnemyPrefab;
+    public Transform coldEnemyPrefab;
 
     [Header("Spawn settings")]
     public float timeBeforeFirstWave = 2f;
@@ -16,17 +18,25 @@ public class Spawner : MonoBehaviour {
     public int waveNumber = 1;
 
     private float? countdown;
+    private GameManager gameManager;
+    private int nbOfEnemiesToSpawn;
 
     private void Awake()
     {
         countdown = timeBeforeFirstWave;
+        gameManager = GameManager.instance;
     }
 
     void Update () {
         //A 0 on spawn une vague
 		if(countdown <= 0)
         {
-            StartCoroutine(SpawnWave());
+            nbOfEnemiesToSpawn = waveNumber + 9;
+            gameManager.UpdatePercentages();
+            gameManager.ResetDamageDone();
+            var enemiesToSpawn = PrepareWave();
+            StartCoroutine(SpawnWave(enemiesToSpawn));
+            waveNumber++;
             countdown = null;
         }
 
@@ -42,21 +52,38 @@ public class Spawner : MonoBehaviour {
         }
 	}
 
-    private IEnumerator SpawnWave()
+    private Transform[] PrepareWave()
     {
-        for (int i = 1; i <= waveNumber; i++)
+        float coldPercent = gameManager.coldPercent;
+        float hotPercent = gameManager.hotPercent;
+        Transform[] enemiesToSpawn = new Transform[nbOfEnemiesToSpawn];
+        for (int x = 0; x < waveNumber + 9; x++)
         {
-            SpawnEnemy();
-            if(i < waveNumber)
+            var c = Mathf.RoundToInt(coldPercent / 100 * (nbOfEnemiesToSpawn));
+            if (x < c)
+                enemiesToSpawn[x] = coldEnemyPrefab;
+            else
+                enemiesToSpawn[x] = hotEnemyPrefab;
+        }
+        System.Random rnd = new System.Random();
+        enemiesToSpawn = enemiesToSpawn.OrderBy(x => rnd.Next()).ToArray();
+        return enemiesToSpawn;
+    }
+
+    private IEnumerator SpawnWave(Transform[] enemiesToSpawn)
+    {
+        for (int i = 1; i < nbOfEnemiesToSpawn; i++)
+        {
+            SpawnEnemy(enemiesToSpawn[i]);
+
+            if(i < nbOfEnemiesToSpawn)
             {
                 yield return new WaitForSeconds(delayBetweenEnemies);
             }
         }
-
-        waveNumber++;
     }
 
-    private void SpawnEnemy()
+    private void SpawnEnemy(Transform enemyPrefab)
     {
         var enemy = Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
         enemy.parent = enemyParent;

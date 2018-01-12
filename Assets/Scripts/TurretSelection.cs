@@ -13,13 +13,11 @@ public class TurretSelection : MonoBehaviour {
 
     public void GetColdTurret()
     {
-        Debug.Log("Standard Turret Selected");
         turretManager.SetTurretToBuild(turretManager.coldTurret);
     }
 
     public void GetHotTurret()
     {
-        Debug.Log("Another Turret Selected");
         turretManager.SetTurretToBuild(turretManager.hotTurret);
     }
 }
